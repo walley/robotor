@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+use Getopt::Long qw(GetOptions);
+
+if (not @ARGV) {
+  usage();
+}
+
+
+my $useradd = "/usr/sbin/useradd";
+my %opts;
+
+$p = "none";
+
+GetOptions(\%opts,
+  'l=s' => \$l,
+  'p=s' => \$p,
+  'run',
+) or usage();
+
+print "* trying to add user $l $p ...\n";
+
+my $loginname = $l;
+my $pwstring = $p;
+my $salt = "hzsololol$$";
+
+if ($l eq "root") {
+  die "root died";
+}
+
+my ($name, $passwd, $uid, $gid, $quota, $comment, $gcos, $dir, $shell) = getpwnam ($l);
+
+if ($uid) {
+ print "* user is already there, uid $uid\n";
+} else {
+ print "* adding user\n";
+}
+
+if ($p ne "none") {
+  $pwhash = crypt($pwstring,"\$6\$$salt\$");
+  print "* pw hash is $pwhash\n";
+  $cmd = "/usr/sbin/useradd -p '$pwhash' $loginname";
+  print "* running $cmd\n";
+} else {
+  print "* pw is NOT set\n";
+  $cmd = "/usr/sbin/useradd $loginname";
+  print "* running $cmd\n";
+  
+}
+my $r = system ($cmd);
+print "* return code: $r\n";
+
+my ($name, $passwd, $uid, $gid, $quota, $comment, $gcos, $dir, $shell) = getpwnam ($l);
+
+if ($uid) {
+ print "* success, uid $uid\n";
+} else {
+ print "* failure\n";
+}
+
