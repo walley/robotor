@@ -57,3 +57,28 @@ if ($uid) {
  print "* failure\n";
 }
 
+################################################################################
+sub add_virtual()
+################################################################################
+{
+  my ($l) = @_;
+
+  print "* start\n";
+  print "* adding to virtualtable $l\n";
+  $filename = "/etc/mail/virtusertable";
+
+  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+
+  my $now_string = strftime "%y%m%d", localtime;
+  print "* now is $now_string\n";
+
+return;
+  $backup = "/etc/mail/virtusertable.".$now_string;
+
+  copy("/etc/mail/virtusertable", $backup) or die "Copy failed: $!";
+
+  open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
+
+  print $fh $l."\@hzsol.cz hzsol+%1\n";
+  print $fh $l."\@olk.izscr.cz olkizscr+%1\n";
+}
