@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+
+use POSIX qw(strftime);
 use Getopt::Long qw(GetOptions);
 
 if (not @ARGV) {
@@ -17,44 +19,48 @@ GetOptions(\%opts,
   'run',
 ) or usage();
 
-print "* trying to add user $l $p ...\n";
 
-my $loginname = $l;
-my $pwstring = $p;
-my $salt = "hzsololol$$";
+sub add_user()
+{
+  print "* trying to add user $l $p ...\n";
 
-if ($l eq "root") {
-  die "root died";
-}
+  my $loginname = $l;
+  my $pwstring = $p;
+  my $salt = "hzsololol$$";
 
-my ($name, $passwd, $uid, $gid, $quota, $comment, $gcos, $dir, $shell) = getpwnam ($l);
+  if ($l eq "root") {
+    die "root died";
+  }
 
-if ($uid) {
- print "* user is already there, uid $uid\n";
-} else {
- print "* adding user\n";
-}
+  my ($name, $passwd, $uid, $gid, $quota, $comment, $gcos, $dir, $shell) = getpwnam ($l);
 
-if ($p ne "none") {
-  $pwhash = crypt($pwstring,"\$6\$$salt\$");
-  print "* pw hash is $pwhash\n";
-  $cmd = "/usr/sbin/useradd -p '$pwhash' $loginname";
-  print "* running $cmd\n";
-} else {
-  print "* pw is NOT set\n";
-  $cmd = "/usr/sbin/useradd $loginname";
-  print "* running $cmd\n";
-  
-}
-my $r = system ($cmd);
-print "* return code: $r\n";
+  if ($uid) {
+   print "* user is already there, uid $uid\n";
+  } else {
+   print "* adding user\n";
+  }
 
-my ($name, $passwd, $uid, $gid, $quota, $comment, $gcos, $dir, $shell) = getpwnam ($l);
+  if ($p ne "none") {
+    $pwhash = crypt($pwstring,"\$6\$$salt\$");
+    print "* pw hash is $pwhash\n";
+    $cmd = "/usr/sbin/useradd -p '$pwhash' $loginname";
+    print "* running $cmd\n";
+  } else {
+    print "* pw is NOT set\n";
+    $cmd = "/usr/sbin/useradd $loginname";
+    print "* running $cmd\n";
+  }
+  my $r = system ($cmd);
+  print "* return code: $r\n";
 
-if ($uid) {
- print "* success, uid $uid\n";
-} else {
- print "* failure\n";
+  my ($name, $passwd, $uid, $gid, $quota, $comment, $gcos, $dir, $shell) = getpwnam ($l);
+
+  if ($uid) {
+   print "* success, uid $uid\n";
+  } else {
+   print "* failure\n";
+  }
+
 }
 
 ################################################################################
@@ -81,4 +87,15 @@ return;
 
   print $fh $l."\@hzsol.cz hzsol+%1\n";
   print $fh $l."\@olk.izscr.cz olkizscr+%1\n";
+}
+
+################################################################################
+sub usage() 
+################################################################################
+{
+print " 
+-l login
+-p heslo
+";
+die;
 }
