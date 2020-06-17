@@ -1,13 +1,13 @@
 #!/usr/bin/perl
-
-use POSIX qw(strftime);
 use Getopt::Long qw(GetOptions);
+use POSIX qw(strftime);
 
 if (not @ARGV) {
-  usage();
+  &help();
 }
 
-
+my $virtusertable = "/etc/mail/virtusertable";
+my $virtusertable = "virtusertable";
 my $useradd = "/usr/sbin/useradd";
 my %opts;
 
@@ -17,14 +17,69 @@ GetOptions(\%opts,
   'l=s' => \$l,
   'p=s' => \$p,
   'run',
-) or usage();
-
+) or &help();
 
 
 ################################################################################
 sub set_passwd()
 ################################################################################
 {
+}
+
+################################################################################
+sub grep_virtual()
+################################################################################
+{
+  my $what = shift;
+  my $fh;
+
+  $filename = $virtusertable;
+  open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
+  my @virtual = <$fh>;
+
+  print"-$what-\n";
+
+  my @g = grep(/^$what\@/, @virtual);
+
+  foreach (@g) {print;}
+  if (@g) {
+    print "found\n";
+    return 1;
+  }
+
+  return 0;
+}
+
+################################################################################
+sub add_virtual()
+################################################################################
+{
+  my ($l) = @_;
+
+  print "* start\n";
+
+  if (&grep_virtual($l)) {
+    print "* not adding $l, already there\n";
+    return;
+  }
+
+  print "* adding to virtualtable $l\n";
+  $filename = "/etc/mail/virtusertable";
+
+  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+
+  my $now_string = strftime "%y%m%d", localtime;
+  print "* now is $now_string\n";
+
+return;
+  $backup = "/etc/mail/virtusertable.".$now_string;
+
+  copy("/etc/mail/virtusertable", $backup) or die "Copy failed: $!";
+
+  open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
+
+  print $fh $l."\@hzsol.cz hzsol+%1\n";
+  print $fh $l."\@olk.izscr.cz olkizscr+%1\n";
 }
 
 ################################################################################
@@ -73,38 +128,11 @@ sub add_user()
 }
 
 ################################################################################
-sub add_virtual()
+sub help()
 ################################################################################
 {
-  my ($l) = @_;
-
-  print "* start\n";
-  print "* adding to virtualtable $l\n";
-  $filename = "/etc/mail/virtusertable";
-
-  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
-
-  my $now_string = strftime "%y%m%d", localtime;
-  print "* now is $now_string\n";
-
-return;
-  $backup = "/etc/mail/virtusertable.".$now_string;
-
-  copy("/etc/mail/virtusertable", $backup) or die "Copy failed: $!";
-
-  open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
-
-  print $fh $l."\@hzsol.cz hzsol+%1\n";
-  print $fh $l."\@olk.izscr.cz olkizscr+%1\n";
-}
-
-################################################################################
-sub usage() 
-################################################################################
-{
-print " 
--l login
--p heslo
-";
-die;
+  print "$0 help:
+  -l - login name
+  -p - xxxx\n";
+  die("bad parameters");
 }
