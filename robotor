@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+
+use File::Copy;
 use Getopt::Long qw(GetOptions);
 use POSIX qw(strftime);
 
@@ -16,9 +18,16 @@ $p = "none";
 GetOptions(\%opts,
   'l=s' => \$l,
   'p=s' => \$p,
-  'run',
+  'a=s' => \$a,
 ) or &help();
 
+if ($a eq "alias")
+{
+  print "alias $l\n";
+  &add_alias($l);
+} else {
+  print "no action $l\n";
+}
 
 ################################################################################
 sub set_passwd()
@@ -50,10 +59,43 @@ sub grep_virtual()
   return 0;
 }
 
+
+################################################################################
+sub backup_file()
+################################################################################
+{
+  my ($filename) = @_;
+}
+
 ################################################################################
 sub add_alias()
 ################################################################################
 {
+  my ($l) = @_;
+
+  print "* start\n";
+
+#  if (&grep_virtual($l)) {
+#    print "* not adding $l, already there\n";
+#    return;
+#  }
+
+  print "* adding to aliases $l\n";
+  $filename = "/etc/aliasesx";
+
+  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+
+  my $now_string = strftime "%y%m%d", localtime;
+  print "* now is $now_string\n";
+
+  $backup = $filename . "." . $now_string;
+
+  copy($filename, $backup) or die "Copy failed: $!";
+
+  open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
+
+  print $fh "$l: $l@postfix.hzsol.cz\n";
+  close $fh;
 }
 
 
@@ -78,7 +120,6 @@ sub add_virtual()
   my $now_string = strftime "%y%m%d", localtime;
   print "* now is $now_string\n";
 
-return;
   $backup = "/etc/mail/virtusertable.".$now_string;
 
   copy("/etc/mail/virtusertable", $backup) or die "Copy failed: $!";
@@ -87,6 +128,7 @@ return;
 
   print $fh $l."\@hzsol.cz hzsol+%1\n";
   print $fh $l."\@olk.izscr.cz olkizscr+%1\n";
+  close $fh;
 }
 
 ################################################################################
@@ -139,7 +181,8 @@ sub help()
 ################################################################################
 {
   print "$0 help:
+  -a - action (alias, virtual, user)
   -l - login name
-  -p - xxxx\n";
+  -p - password\n";
   die("bad parameters");
 }
