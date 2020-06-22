@@ -59,6 +59,29 @@ sub grep_virtual()
   return 0;
 }
 
+################################################################################
+sub grep_file()
+################################################################################
+{
+  my ($filename, $what) = @_;
+  my $fh;
+
+  open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
+  my @virtual = <$fh>;
+
+  print"-$what-\n";
+
+  my @g = grep(/$what/, @virtual);
+
+  foreach (@g) {print;}
+  if (@g) {
+    print "found\n";
+    return 1;
+  }
+
+  return 0;
+}
+
 
 ################################################################################
 sub backup_file()
@@ -72,16 +95,16 @@ sub add_alias()
 ################################################################################
 {
   my ($l) = @_;
+  $filename = "/etc/aliasesx";
 
   print "* start\n";
 
-#  if (&grep_virtual($l)) {
-#    print "* not adding $l, already there\n";
-#    return;
-#  }
+  if (&grep_file($filename, '^' . $l . ': .*$')) {
+    print "* not adding $l, already there\n";
+    return;
+  }
 
   print "* adding to aliases $l\n";
-  $filename = "/etc/aliasesx";
 
   my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 
@@ -94,7 +117,7 @@ sub add_alias()
 
   open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
 
-  print $fh "$l: $l@postfix.hzsol.cz\n";
+  print $fh "$l: $l\@postfix.hzsol.cz\n";
   close $fh;
 }
 
