@@ -23,6 +23,10 @@ GetOptions(\%opts,
 
 if ($a eq "alias")
 {
+  if ($l eq "") {.
+    die "no login (-l) fsck";
+  }
+
   print "alias $l\n";
   &add_alias($l);
 } else {
