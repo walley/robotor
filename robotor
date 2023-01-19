@@ -175,11 +175,11 @@ sub del_virtual_postfix()
       print ".";
     }
   }
-print "\n";
+  print "\n";
 
   close $fhout;
   close $fhin;
-
+  system ("mv $outfile $virtusertable")
 }
 
 sub del_virtual_sendmail()
