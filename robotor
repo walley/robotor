@@ -32,12 +32,12 @@ if ($a eq "alias")
 {
   print "alias $l\n";
   &add_alias($l);
-} elsif ($a eq "vpostfix") {
-  print "postfix virtual user $l\n";
+} elsif ($a eq "avpostfix") {
+  print "adding postfix virtual user $l\n";
   $virtusertable = "/etc/postfix/vmailbox";
   &add_virtual_postfix($l);
-} elsif ($a eq "dpostfix") {
-  print "postfix virtual user $l\n";
+} elsif ($a eq "dvpostfix") {
+  print "deleting postfix virtual user $l\n";
   $virtusertable = "/etc/postfix/vmailbox";
   &del_user($l,"postfix");
 } else {
@@ -84,13 +84,13 @@ sub grep_file()
   open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
   my @virtual = <$fh>;
 
-  print"-$what-\n";
+  print "grep(): -$what-\n";
 
   my @g = grep(/$what/, @virtual);
 
-  foreach (@g) {print;}
+#  foreach (@g) {print;}
   if (@g) {
-    print "found\n";
+    print "grep():found\n";
     return 1;
   }
 
@@ -147,10 +147,39 @@ sub del_virtual()
   print "* deleting user\n";
 }
 
+################################################################################
 sub del_virtual_postfix()
+################################################################################
 {
   my ($l) = @_;
-  print "  * from postfix\n";
+  print "  * deleting from $virtusertable\n";
+  &backup_file($virtusertable);
+
+  if (!&grep_file($virtusertable, '^' . $l . '@.*.cz .*$')) {
+    print "   * not deleting $l, not in $virtusertable\n";
+    return;
+  }
+
+  print "  * user found\n";
+
+  $outfile = $virtusertable.".new."."$$";
+  print "  * out: $outfile\n";
+  open(my $fhin, '<', $virtusertable) or die "Could not open file '$virtusertable' $!";
+  open(my $fhout, '>', $outfile) or die "Could not open file '$outfile' $!";
+
+  while (<$fhin>) {
+    if ($_ =~ "$l\@.*.cz .*.cz/Maildir/") {
+      print " found ";
+    } else {
+      print $fhout $_;
+      print ".";
+    }
+  }
+print "\n";
+
+  close $fhout;
+  close $fhin;
+
 }
 
 sub del_virtual_sendmail()
@@ -203,17 +232,11 @@ sub add_virtual_postfix()
     return;
   }
 
-  print "* adding to virtualtable $l\n";
+  print "* adding to vmailbox $l\n";
+
   $filename = "/etc/postfix/vmailbox";
 
-  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
-
-  my $now_string = strftime "%y%m%d", localtime;
-  print "* now is $now_string\n";
-
-  $backup = "/etc/postfix/vmailbox.".$now_string;
-
-  copy($filename, $backup) or die "Copy failed: $!";
+  &backup_file($filename);
 
   open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
 
