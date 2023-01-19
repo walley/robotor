@@ -1,5 +1,5 @@
 #!/bin/sh
 for user in `cat seznam*`
 do
-  ./robotor -l $user -a alias
+  ./robotor -l $user -a vpostfix
 done

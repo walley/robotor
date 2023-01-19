@@ -21,14 +21,25 @@ GetOptions(\%opts,
   'a=s' => \$a,
 ) or &help();
 
-if ($a eq "alias")
-{
-  if ($l eq "") {.
+
+if ($a ne "") {
+  if ($l eq "") {
     die "no login (-l) fsck";
   }
+}
 
+if ($a eq "alias")
+{
   print "alias $l\n";
   &add_alias($l);
+} elsif ($a eq "vpostfix") {
+  print "postfix virtual user $l\n";
+  $virtusertable = "/etc/postfix/vmailbox";
+  &add_virtual_postfix($l);
+} elsif ($a eq "dpostfix") {
+  print "postfix virtual user $l\n";
+  $virtusertable = "/etc/postfix/vmailbox";
+  &del_user($l,"postfix");
 } else {
   print "no action $l\n";
 }
@@ -129,6 +140,24 @@ sub add_alias()
 }
 
 
+sub del_virtual()
+{
+  my ($l) = @_;
+
+  print "* deleting user\n";
+}
+
+sub del_virtual_postfix()
+{
+  my ($l) = @_;
+  print "  * from postfix\n";
+}
+
+sub del_virtual_sendmail()
+{
+  print "  * virtual user from sendmail\n";
+}
+
 ################################################################################
 sub add_virtual()
 ################################################################################
@@ -159,6 +188,51 @@ sub add_virtual()
   print $fh $l."\@hzsol.cz hzsol+%1\n";
   print $fh $l."\@olk.izscr.cz olkizscr+%1\n";
   close $fh;
+}
+
+################################################################################
+sub add_virtual_postfix()
+################################################################################
+{
+  my ($l) = @_;
+
+  print "* start\n";
+
+  if (&grep_virtual($l)) {
+    print "* not adding $l, already there\n";
+    return;
+  }
+
+  print "* adding to virtualtable $l\n";
+  $filename = "/etc/postfix/vmailbox";
+
+  my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+
+  my $now_string = strftime "%y%m%d", localtime;
+  print "* now is $now_string\n";
+
+  $backup = "/etc/postfix/vmailbox.".$now_string;
+
+  copy($filename, $backup) or die "Copy failed: $!";
+
+  open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
+
+  print $fh $l."\@hzsol.cz hzsol.cz/Maildir/\n";
+  print $fh $l."\@olk.izscr.cz olk.izscr.cz/Maildir/\n";
+  close $fh;
+}
+
+
+################################################################################
+sub del_user()
+################################################################################
+{
+  my ($l, $type) = @_;
+  print "* trying to delete user in $type mode ...\n";
+
+  if ($type eq "postfix") {
+    &del_virtual_postfix($l);
+  }
 }
 
 ################################################################################
@@ -211,7 +285,7 @@ sub help()
 ################################################################################
 {
   print "$0 help:
-  -a - action (alias, virtual, user)
+  -a - action (alias, virtual, user, dpostfix)
   -l - login name
   -p - password\n";
   die("bad parameters");
