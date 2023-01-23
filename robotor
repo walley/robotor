@@ -323,9 +323,18 @@ sub add_user()
 sub help()
 ################################################################################
 {
+#actions 
+  my @actions = ("avpostfix", "dvpostfix", "alias");
+
+
   print "$0 help:
-  -a - action (alias, virtual, user, dpostfix)
+  -a - action
   -l - login name
   -p - password\n";
+
+  print "actions: \n";
+  foreach (sort(@actions)) {print; print ",";}
+  print "\n";
+
   die("bad parameters");
 }
