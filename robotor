@@ -34,6 +34,7 @@ $p = "none";
 GetOptions(\%opts,
   'l=s' => \$l,
   'p=s' => \$p,
+  'f=s' => \$f,
   'a=s' => \$a,
 ) or &help();
 
@@ -42,6 +43,10 @@ if ($a ne "") {
   if ($l eq "") {
     die "no login (-l) fsck";
   }
+}
+
+if ($f) {
+  print "!forward\n";
 }
 
 if ($a eq "alias")
@@ -56,6 +61,9 @@ if ($a eq "alias")
   print "deleting postfix virtual user $l\n";
   $virtusertable = "/etc/postfix/vmailbox";
   &del_user($l,"postfix");
+} elsif ($a eq "fwshow") {
+  print "showing .forward for user $l\n";
+  &show_forward($l);
 } else {
   print "no action $l\n";
 }
@@ -104,7 +112,6 @@ sub grep_file()
 
   my @g = grep(/$what/, @virtual);
 
-#  foreach (@g) {print;}
   if (@g) {
     print "grep():found\n";
     return 1;
@@ -155,12 +162,14 @@ sub add_alias()
   close $fh;
 }
 
-
+################################################################################
 sub del_virtual()
+################################################################################
 {
   my ($l) = @_;
 
   print "* deleting user\n";
+  print "no action \n";
 }
 
 ################################################################################
@@ -319,18 +328,45 @@ sub add_user()
 
 }
 
+
+################################################################################
+sub exist_forward()
+################################################################################
+{
+  my $loginname = shift;
+  return (-e "/home/" . $loginname ."/.forward");
+}
+
+################################################################################
+sub show_forward()
+################################################################################
+{
+  my $l = shift;
+
+  if (&exist_forward($l)) {
+    print "* .forward is present\n";
+  } else {
+    print "* .forward not found\n";
+  }
+}
+
+#add_forward
+#delete_forward
+
 ################################################################################
 sub help()
 ################################################################################
 {
 #actions 
-  my @actions = ("avpostfix", "dvpostfix", "alias");
+  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow");
 
+  print "ROBOTOR v0.1\n\n";
 
   print "$0 help:
-  -a - action
-  -l - login name
-  -p - password\n";
+  -a : action
+  -s : show users and forwards 
+  -l : login name
+  -p : password\n";
 
   print "actions: \n";
   foreach (sort(@actions)) {print; print ",";}
