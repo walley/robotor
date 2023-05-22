@@ -64,6 +64,9 @@ if ($a eq "alias")
 } elsif ($a eq "fwshow") {
   print "showing .forward for user $l\n";
   &show_forward($l);
+} elsif ($a eq "fwadd") {
+  print "adding stuff ($f) to .forward for user $l\n";
+  &add_forward($l, $f);
 } else {
   print "no action $l\n";
 }
@@ -338,19 +341,80 @@ sub exist_forward()
 }
 
 ################################################################################
+sub is_self_forward()
+################################################################################
+{
+  my $l = shift;
+  return &grep_file("/home/" . $l ."/.forward", '^' . $l . '$');
+}
+
+################################################################################
+sub is_stuff_forward()
+################################################################################
+{
+  my ($l, $what) = @_;
+  return &grep_file("/home/" . $l ."/.forward", '^' . $what . '$');
+}
+
+
+################################################################################
 sub show_forward()
 ################################################################################
 {
   my $l = shift;
 
+  my $fw = "/home/" . $l ."/.forward";
+
   if (&exist_forward($l)) {
     print "* .forward is present\n";
   } else {
     print "* .forward not found\n";
+    return;
+  }
+
+  if (&is_self_forward($l)) {
+    print "* forwarding to self\n";
+  }
+
+  open(my $fh, '<', $fw) or die "Could not open file '$filename' $!";
+  my @fw_content = <$fh>;
+
+  foreach (@fw_content) {
+    print;
+  }
+
+}
+
+################################################################################
+sub add_forward()
+################################################################################
+{
+  my ($l, $what) = @_;
+  my $fw = "/home/" . $l ."/.forward";
+
+  if (&exist_forward($l)) {
+    print "  - updating $l\n";
+    if (&is_stuff_forward($l, $what)) {
+      print "    - already there\n";
+    } else {
+      print "    - adding $what\n";
+      my $f;
+      open ($f,">>", $fw) or die;
+      print $f "$what\n";
+      close $f
+    }
+  } else {
+    print "  - adding ($what) to $l\n";
+    my $f;
+    open ($f,">", $fw) or die;
+    print $f "$l\n";
+    if ($what ne "" and $what ne $l) {
+      print $f "$what\n";
+    }
+    close $f;
   }
 }
 
-#add_forward
 #delete_forward
 
 ################################################################################
@@ -358,15 +422,17 @@ sub help()
 ################################################################################
 {
 #actions 
-  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow");
+  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow", "fwadd");
 
   print "ROBOTOR v0.1\n\n";
 
   print "$0 help:
   -a : action
-  -s : show users and forwards 
+  -f : forward stuff
   -l : login name
-  -p : password\n";
+  -p : password
+  -s : show users and forwards 
+  \n";
 
   print "actions: \n";
   foreach (sort(@actions)) {print; print ",";}
