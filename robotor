@@ -428,6 +428,7 @@ sub delete_forward()
 ################################################################################
 {
   my ($l, $what) = @_;
+  my $lines = 0;
 
   $dot_forward = "/home/" . $l ."/.forward";
   $dot_forward_out = "/home/" . $l ."/.forward.out";
@@ -442,6 +443,7 @@ sub delete_forward()
     chomp $i;
     if ($i ne $what) {
       print $fout $i . "\n";
+      $lines++;
     }
   }
 
@@ -450,6 +452,12 @@ sub delete_forward()
 
   rename $dot_forward, $dot_forward.".bak" or die "cannot rename old dotforward";
   rename $dot_forward_out, $dot_forward or die "cannot rename .old to dotforward";
+
+  if (!$lines) {
+    print "  - empty .forward, will delete\n";
+    unlink $dot_forward or die "CANNOT DELETE";
+  }
+
 }
 
 
