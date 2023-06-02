@@ -45,10 +45,6 @@ if ($a ne "") {
   }
 }
 
-if ($f) {
-  print "!forward\n";
-}
-
 if ($a eq "alias")
 {
   print "alias $l\n";
@@ -65,8 +61,20 @@ if ($a eq "alias")
   print "showing .forward for user $l\n";
   &show_forward($l);
 } elsif ($a eq "fwadd") {
+  if ($f eq "") {
+    die "need -f";
+  }
   print "adding stuff ($f) to .forward for user $l\n";
   &add_forward($l, $f);
+} elsif ($a eq "fwdel") {
+  if ($f eq "") {
+    die "need -f";
+  }
+  print "deleting stuff ($f) from .forward for user $l\n";
+  &delete_forward($l, $f);
+} elsif ($a eq "fwdelself") {
+  print "deleting user ($l) from his own .forward\n";
+  &delete_forward($l, $l);
 } else {
   print "no action $l\n";
 }
@@ -420,6 +428,28 @@ sub delete_forward()
 ################################################################################
 {
   my ($l, $what) = @_;
+
+  $dot_forward = "/home/" . $l ."/.forward";
+  $dot_forward_out = "/home/" . $l ."/.forward.out";
+
+  open(my $fin, '<', $dot_forward) or die "Could not open .forward '$filename' $!";
+  open(my $fout, '>', $dot_forward_out) or die "Could not open ouput  '$filename' $!";
+
+  my @forward = <$fin>;
+
+  foreach $i (@forward)
+  {
+    chomp $i;
+    if ($i ne $what) {
+      print $fout $i . "\n";
+    }
+  }
+
+  close $fin;
+  close $fout;
+
+  rename $dot_forward, $dot_forward.".bak" or die "cannot rename old dotforward";
+  rename $dot_forward_out, $dot_forward or die "cannot rename .old to dotforward";
 }
 
 
@@ -436,9 +466,9 @@ sub help()
 ################################################################################
 {
 #actions 
-  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow", "fwadd");
+  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow", "fwadd", "fwdel", "fwdelself");
 
-  print "ROBOTOR v0.1\n\n";
+  print "ROBOTOR v0.2\n\n";
 
   print "$0 help:
   -a : action
