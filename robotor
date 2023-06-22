@@ -119,12 +119,12 @@ sub grep_file()
   open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
   my @virtual = <$fh>;
 
-  print "grep(): -$what-\n";
+#  print "grep(): -$what-\n";
 
   my @g = grep(/$what/, @virtual);
 
   if (@g) {
-    print "grep():found\n";
+#    print "grep():found\n";
     return 1;
   }
 
@@ -412,15 +412,20 @@ sub add_forward()
       close $f
     }
   } else {
-    print "  - adding ($what) to $l\n";
     my $f;
     open ($f,">", $fw) or die;
+    print "  - adding ($l) to $l\n";
     print $f "$l\n";
     if ($what ne "" and $what ne $l) {
+    print "  - adding ($what) to $l\n";
       print $f "$what\n";
     }
     close $f;
   }
+
+  my $cmd = "chown $l:$l .forward";
+  print "  - fixing privileges $cmd\n";
+  system($cmd);
 }
 
 ################################################################################
