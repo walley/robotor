@@ -75,6 +75,12 @@ if ($a eq "alias")
 } elsif ($a eq "fwdelself") {
   print "deleting user ($l) from his own .forward\n";
   &delete_forward($l, $l);
+} elsif ($a eq "chku") {
+  if (&exist_user($l)) {
+    print "user $l exists\n"
+  } else {
+    print "user $l not found\n";
+  }
 } else {
   print "no action $l\n";
 }
@@ -349,6 +355,14 @@ sub exist_forward()
 }
 
 ################################################################################
+sub exist_user()
+################################################################################
+{
+  my $loginname = shift;
+  return (-e "/home/" . $loginname);
+}
+
+################################################################################
 sub is_self_forward()
 ################################################################################
 {
@@ -423,7 +437,7 @@ sub add_forward()
     close $f;
   }
 
-  my $cmd = "chown $l:$l .forward";
+  my $cmd = "chown $l:$l $fw";
   print "  - fixing privileges $cmd\n";
   system($cmd);
 }
@@ -479,7 +493,7 @@ sub help()
 ################################################################################
 {
 #actions 
-  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow", "fwadd", "fwdel", "fwdelself");
+  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow", "fwadd", "fwdel", "fwdelself","chku");
 
   print "ROBOTOR v0.2\n\n";
 
