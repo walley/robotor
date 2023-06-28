@@ -477,6 +477,9 @@ sub delete_forward()
     unlink $dot_forward or die "CANNOT DELETE";
   }
 
+  my $cmd = "chown $l:$l $dot_forward";
+  print "  - fixing privileges $cmd\n";
+  system($cmd);
 }
 
 
