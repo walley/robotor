@@ -60,6 +60,13 @@ if ($a eq "alias")
 } elsif ($a eq "fwshow") {
   print "showing .forward for user $l\n";
   &show_forward($l);
+} elsif ($a eq "fwshowself") {
+  print "does $l .forward contains $l\n";
+  if (&is_self_forward($l)) {
+    print "$l forwards to self\n";
+  } else {
+    print "$l nope";
+  }
 } elsif ($a eq "fwadd") {
   if ($f eq "") {
     die "need -f";
@@ -496,7 +503,7 @@ sub help()
 ################################################################################
 {
 #actions 
-  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow", "fwadd", "fwdel", "fwdelself","chku");
+  my @actions = ("avpostfix", "dvpostfix", "alias", "fwshow", "fwadd", "fwdel", "fwdelself","chku","fwshowself");
 
   print "ROBOTOR v0.2\n\n";
 
@@ -509,7 +516,7 @@ sub help()
   \n";
 
   print "actions: \n";
-  foreach (sort(@actions)) {print; print ",";}
+  print join(",",(sort(@actions)));
   print "\n";
 
   die("bad parameters");
